@@ -115,17 +115,17 @@
       </div>
       <h2 class="text-2xl font-bold text-white mb-3">IP 檢查通過</h2>
       <p class="text-gray-400 mb-6">請輸入您的 Discord 用戶 ID 以完成驗證</p>
-      <p class="text-yellow-300 text-sm mb-6">
+      <p class="text-yellow-300 text-sm mb-8 leading-relaxed">
         如何取得 ID？<br>
-        1. 開啟 Discord 設定 → 外觀 → 進階 → 開啟「開發者模式」<br>
-        2. 右鍵點自己頭像 → 複製使用者 ID（18 位數字）
+        電腦版：點一下左下方你的頭像然後複製使用者ID<br>
+        手機版：找到隨便你發的一條訊息點一下頭像然後點一下右上角3個點複製使用者ID
       </p>
       <form id="id-form" class="space-y-4">
         <div class="text-left">
           <label for="user-id" class="block text-gray-400 text-sm mb-2">Discord 用戶 ID（18 位數字）</label>
           <input type="text" id="user-id" placeholder="例如：123456789012345678" 
                  class="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all" 
-                 pattern="\d{17,19}" required>
+                 pattern="\d{17,19}" title="請輸入 17~19 位的數字" required>
         </div>
         <button type="submit" class="discord-btn w-full py-4 px-8 rounded-xl text-white font-semibold text-lg">
           完成驗證
