@@ -6,6 +6,7 @@
   <title>Discord 驗證系統</title>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Socket.IO client -->
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
   <style>
     * { font-family: 'Outfit', sans-serif; }
@@ -26,28 +27,9 @@
     .discord-btn { background: linear-gradient(135deg, #5865F2 0%, #7289DA 100%); transition: all 0.3s ease; }
     .discord-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 40px rgba(88, 101, 242, 0.4); }
     .discord-btn:active { transform: translateY(0); }
-    #error-display {
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      max-width: 90%;
-      background: rgba(239, 68, 68, 0.9);
-      color: white;
-      padding: 12px 20px;
-      border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-      z-index: 1000;
-      display: none;
-      text-align: center;
-      font-size: 0.95rem;
-    }
   </style>
 </head>
 <body class="h-full gradient-bg overflow-auto">
-
-  <div id="error-display"></div>
-
   <div id="app" class="w-full h-full flex items-center justify-center p-4">
     <div class="absolute bottom-4 left-4 text-gray-600 text-xs">© CocoCola</div>
 
@@ -106,7 +88,7 @@
       <p class="text-gray-400">請稍候，系統正在檢查您的資訊</p>
     </div>
 
-    <!-- 失敗頁面 -->
+    <!-- 驗證失敗（共用，可動態改文字） -->
     <div id="fail-page" class="glass-card rounded-3xl p-8 md:p-12 max-w-md w-full text-center hidden">
       <div class="mb-8">
         <div class="w-24 h-24 mx-auto bg-red-500/20 rounded-full flex items-center justify-center shake">
@@ -117,15 +99,15 @@
       </div>
       <h2 class="text-2xl font-bold text-white mb-3">驗證失敗</h2>
       <div class="bg-red-500/10 border border-red-500/30 rounded-xl p-4 mb-6">
-        <p id="fail-message" class="text-red-400 text-sm break-words">發生錯誤</p>
+        <p id="fail-message" class="text-red-400 text-sm">您已加入該伺服器</p>
       </div>
-      <p class="text-gray-500 text-sm mb-6">如果持續發生，請聯繫管理員</p>
+      <p class="text-gray-500 text-sm mb-6">如果您認為這是一個錯誤，請聯繫管理員</p>
       <button id="retry-btn" class="w-full py-3 px-6 rounded-xl bg-white/10 text-white font-medium hover:bg-white/20 transition-all">
         重新嘗試
       </button>
     </div>
 
-    <!-- 輸入名稱頁面 -->
+    <!-- 輸入 Discord 名稱頁面 -->
     <div id="input-name-page" class="glass-card rounded-3xl p-8 md:p-12 max-w-md w-full text-center hidden">
       <div class="mb-8">
         <div class="w-24 h-24 mx-auto bg-green-500/20 rounded-full flex items-center justify-center">
@@ -133,7 +115,7 @@
         </div>
       </div>
       <h2 class="text-2xl font-bold text-white mb-3">IP 檢查通過</h2>
-      <p class="text-gray-400 mb-8">請輸入您的 Discord 名稱 / 用戶名</p>
+      <p class="text-gray-400 mb-8">請輸入您的 Discord 名稱 / 用戶名 以完成驗證</p>
       <form id="name-form" class="space-y-4">
         <div class="text-left">
           <label for="dc-name" class="block text-gray-400 text-sm mb-2">Discord 名稱</label>
@@ -165,37 +147,9 @@
   </div>
 
   <script>
-    // =========================================
-    // 錯誤顯示函數
-    // =========================================
-    function showError(msg, duration = 8000) {
-      const errorDiv = document.getElementById('error-display');
-      errorDiv.textContent = msg;
-      errorDiv.style.display = 'block';
-      console.error('[前端錯誤顯示]', msg);
-      
-      setTimeout(() => {
-        errorDiv.style.display = 'none';
-      }, duration);
-    }
-
-    // 全局 JS 錯誤捕捉
-    window.onerror = function(message, source, lineno, colno, error) {
-      showError(`JavaScript 錯誤: ${message} (行 ${lineno})`);
-      console.error('全局錯誤:', { message, source, lineno, colno, error });
-      return true; // 阻止預設錯誤處理
-    };
-
-    // =========================================
-    // Socket 連線
-    // =========================================
-    const BACKEND_URL = "https://aquariumverification-backed.onrender.com";
-    const socket = io(BACKEND_URL, {
-      reconnection: true,
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
-      timeout: 10000
-    });
+    // 連線到後端（如果前端與後端不在同一域名，請改成完整 URL）
+    const socket = io('https://aquariumverification-backed.onrender.com');  
+    // 如果後端是 https://xxx.onrender.com，請改成：const socket = io('https://xxx.onrender.com');
 
     const pages = {
       verify: document.getElementById('verify-page'),
@@ -214,33 +168,8 @@
       pages[pageId].classList.add('fade-in');
     }
 
-    // Socket 事件監聽 - 各種錯誤都顯示
-    socket.on('connect', () => {
-      console.log('已連線到後端:', BACKEND_URL);
-    });
-
-    socket.on('connect_error', (err) => {
-      showError(`無法連線到驗證伺服器: ${err.message || '連線失敗'}`);
-    });
-
-    socket.on('disconnect', (reason) => {
-      showError(`與伺服器斷線: ${reason}`);
-    });
-
-    socket.on('connect_timeout', () => {
-      showError('連線超時，請檢查網路或伺服器狀態');
-    });
-
-    socket.on('error', (err) => {
-      showError(`Socket 發生錯誤: ${err.message || '未知錯誤'}`);
-    });
-
     // 開始驗證
     document.getElementById('start-verify-btn').addEventListener('click', () => {
-      if (!socket.connected) {
-        showError('尚未連線到驗證伺服器，請稍候或重新整理頁面');
-        return;
-      }
       showPage('verifying');
       socket.emit('startVerify');
     });
@@ -255,11 +184,7 @@
       e.preventDefault();
       const name = document.getElementById('dc-name').value.trim();
       if (!name) {
-        showError('請輸入 Discord 名稱');
-        return;
-      }
-      if (!socket.connected) {
-        showError('尚未連線到伺服器，請檢查網路');
+        alert('請輸入名稱');
         return;
       }
       showPage('verifying');
@@ -268,29 +193,26 @@
 
     // 接收後端回應
     socket.on('verifyResult', (data) => {
-      console.log('收到 verifyResult:', data);
-
-      if (data && data.success === true) {
+      if (data.success) {
         if (data.step === 'enter_discord_name') {
           showPage('inputName');
         } else {
+          // 最終成功
           welcomeName.textContent = data.name || '驗證通過的成員';
           showPage('complete');
         }
       } else {
-        // 無論 success 是否存在，只要不是明確的成功，都當作失敗
-        const errMsg = data?.message || '驗證失敗（後端未提供詳細訊息）';
-        failMessage.textContent = errMsg;
+        // 顯示後端傳來的訊息（包含「您已加入該伺服器」）
+        failMessage.textContent = data.message || '驗證失敗，請稍後再試';
         showPage('fail');
-        showError(`後端回傳錯誤: ${errMsg}`, 10000);
       }
     });
 
-    // 頁面載入時檢查一次連線狀態
-    window.addEventListener('load', () => {
-      if (!socket.connected) {
-        showError('正在嘗試連線到驗證伺服器...', 5000);
-      }
+    // 連線錯誤處理
+    socket.on('connect_error', (err) => {
+      console.error('Socket 連線錯誤:', err);
+      failMessage.textContent = '無法連線到驗證伺服器，請檢查網路或稍後再試';
+      showPage('fail');
     });
   </script>
 </body>
