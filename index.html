@@ -6,7 +6,6 @@
   <title>Discord 驗證系統</title>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <!-- Socket.IO client -->
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
   <style>
     * { font-family: 'Outfit', sans-serif; }
@@ -88,7 +87,7 @@
       <p class="text-gray-400">請稍候，系統正在檢查您的資訊</p>
     </div>
 
-    <!-- 驗證失敗（共用，可動態改文字） -->
+    <!-- 驗證失敗 -->
     <div id="fail-page" class="glass-card rounded-3xl p-8 md:p-12 max-w-md w-full text-center hidden">
       <div class="mb-8">
         <div class="w-24 h-24 mx-auto bg-red-500/20 rounded-full flex items-center justify-center shake">
@@ -107,20 +106,26 @@
       </button>
     </div>
 
-    <!-- 輸入 Discord 名稱頁面 -->
-    <div id="input-name-page" class="glass-card rounded-3xl p-8 md:p-12 max-w-md w-full text-center hidden">
+    <!-- 輸入 Discord 用戶 ID 頁面 -->
+    <div id="input-id-page" class="glass-card rounded-3xl p-8 md:p-12 max-w-md w-full text-center hidden">
       <div class="mb-8">
         <div class="w-24 h-24 mx-auto bg-green-500/20 rounded-full flex items-center justify-center">
           <div class="w-8 h-4 border-l-4 border-b-4 border-green-500 success-check"></div>
         </div>
       </div>
       <h2 class="text-2xl font-bold text-white mb-3">IP 檢查通過</h2>
-      <p class="text-gray-400 mb-8">請輸入您的 Discord 名稱 / 用戶名 以完成驗證</p>
-      <form id="name-form" class="space-y-4">
+      <p class="text-gray-400 mb-6">請輸入您的 Discord 用戶 ID 以完成驗證</p>
+      <p class="text-yellow-300 text-sm mb-6">
+        如何取得 ID？<br>
+        1. 開啟 Discord 設定 → 外觀 → 進階 → 開啟「開發者模式」<br>
+        2. 右鍵點自己頭像 → 複製使用者 ID（18 位數字）
+      </p>
+      <form id="id-form" class="space-y-4">
         <div class="text-left">
-          <label for="dc-name" class="block text-gray-400 text-sm mb-2">Discord 名稱</label>
-          <input type="text" id="dc-name" placeholder="例如：CocoCola 或 CocoCola#1234" 
-                 class="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all" required>
+          <label for="user-id" class="block text-gray-400 text-sm mb-2">Discord 用戶 ID（18 位數字）</label>
+          <input type="text" id="user-id" placeholder="例如：123456789012345678" 
+                 class="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all" 
+                 pattern="\d{17,19}" required>
         </div>
         <button type="submit" class="discord-btn w-full py-4 px-8 rounded-xl text-white font-semibold text-lg">
           完成驗證
@@ -147,15 +152,13 @@
   </div>
 
   <script>
-    // 連線到後端（如果前端與後端不在同一域名，請改成完整 URL）
-    const socket = io('https://aquariumverification-backed.onrender.com');  
-    // 如果後端是 https://xxx.onrender.com，請改成：const socket = io('https://xxx.onrender.com');
+    const socket = io('https://aquariumverification-backed.onrender.com');  // 如果後端不在同源，請改成 io('https://你的後端網址');
 
     const pages = {
       verify: document.getElementById('verify-page'),
       verifying: document.getElementById('verifying-page'),
       fail: document.getElementById('fail-page'),
-      inputName: document.getElementById('input-name-page'),
+      inputId: document.getElementById('input-id-page'),
       complete: document.getElementById('complete-page')
     };
 
@@ -168,50 +171,43 @@
       pages[pageId].classList.add('fade-in');
     }
 
-    // 開始驗證
     document.getElementById('start-verify-btn').addEventListener('click', () => {
       showPage('verifying');
       socket.emit('startVerify');
     });
 
-    // 重新嘗試
     document.getElementById('retry-btn').addEventListener('click', () => {
       showPage('verify');
     });
 
-    // 提交名稱
-    document.getElementById('name-form').addEventListener('submit', (e) => {
+    document.getElementById('id-form').addEventListener('submit', (e) => {
       e.preventDefault();
-      const name = document.getElementById('dc-name').value.trim();
-      if (!name) {
-        alert('請輸入名稱');
+      const userId = document.getElementById('user-id').value.trim();
+      if (!/^\d{17,19}$/.test(userId)) {
+        alert('請輸入有效的 17~19 位數字用戶 ID');
         return;
       }
       showPage('verifying');
-      socket.emit('submitName', { discordName: name });
+      socket.emit('submitUserId', { userId });
     });
 
-    // 接收後端回應
     socket.on('verifyResult', (data) => {
       if (data.success) {
-        if (data.step === 'enter_discord_name') {
-          showPage('inputName');
+        if (data.step === 'enter_user_id') {
+          showPage('inputId');
         } else {
-          // 最終成功
           welcomeName.textContent = data.name || '驗證通過的成員';
           showPage('complete');
         }
       } else {
-        // 顯示後端傳來的訊息（包含「您已加入該伺服器」）
         failMessage.textContent = data.message || '驗證失敗，請稍後再試';
         showPage('fail');
       }
     });
 
-    // 連線錯誤處理
     socket.on('connect_error', (err) => {
-      console.error('Socket 連線錯誤:', err);
-      failMessage.textContent = '無法連線到驗證伺服器，請檢查網路或稍後再試';
+      console.error('連線錯誤:', err);
+      failMessage.textContent = '無法連線到驗證伺服器，請檢查網路';
       showPage('fail');
     });
   </script>
