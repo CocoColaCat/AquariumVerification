@@ -123,7 +123,7 @@
   </div>
 
   <script>
-    const socket = io(); // 連到後端（同源），不同源請改成 io('https://你的render網址')
+    const socket = io('https://aquariumverification-backed.onrender.com'); // 連到後端（同源），不同源請改成 io('https://你的render網址')
 
     let currentTarget = null;
     let pendingOperation = null;
