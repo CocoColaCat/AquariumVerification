@@ -5,9 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>水族館驗證後臺管理系統</title>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
-  <!-- 加入 Socket.IO client（這一行是關鍵！） -->
-  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
-  <script src="/_sdk/element_sdk.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     * { font-family: 'Noto Sans TC', sans-serif; }
@@ -20,12 +17,11 @@
     .btn-hover { transition: all 0.2s ease; }
     .btn-hover:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
   </style>
-  <style>body { box-sizing: border-box; }</style>
-  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
 </head>
 <body class="h-full bg-slate-900 text-slate-100">
   <div id="app-container" class="h-full w-full overflow-auto">
-    <!-- Login Screen -->
+
+    <!-- 登入畫面 -->
     <div id="login-screen" class="h-full w-full flex items-center justify-center bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
       <div class="bg-slate-800 border border-slate-700 rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl">
         <div class="flex justify-center mb-6">
@@ -36,107 +32,95 @@
           </div>
         </div>
         <h1 class="text-2xl font-bold text-center text-white mb-2">水族館驗證後臺管理系統</h1>
-        <p class="text-center text-slate-400 mb-8">請輸入密碼以進入後臺管理</p>
-        <div class="mb-6">
-          <input id="login-password" type="password" placeholder="輸入密碼" class="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition">
-        </div>
-        <button id="login-btn" class="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-semibold py-3 rounded-lg btn-hover transition">
-          進入系統
-        </button>
-        <div id="login-error" class="mt-4 text-red-400 text-sm text-center hidden"></div>
+        <p class="text-center text-slate-400 mb-8">請輸入管理員密碼進入後臺</p>
+        <input id="login-password" type="password" placeholder="輸入密碼" class="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition mb-4">
+        <button id="login-btn" class="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-semibold py-3 rounded-lg btn-hover transition">進入系統</button>
+        <p id="login-error" class="mt-4 text-red-400 text-sm text-center hidden"></p>
       </div>
     </div>
 
-    <!-- Main System -->
-    <div id="main-system" class="hidden">
-      <!-- Header -->
+    <!-- 主畫面 -->
+    <div id="main-system" class="hidden flex flex-col h-full">
       <header class="bg-slate-800 border-b border-slate-700 sticky top-0 z-10">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-lg flex items-center justify-center">
-                <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z" />
-                </svg>
-              </div>
-              <h1 id="system-title" class="text-xl font-bold text-white">水族館驗證後臺管理系統</h1>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-lg flex items-center justify-center">
+              <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z" />
+              </svg>
             </div>
-            <button id="logout-btn" class="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
-              登出
-            </button>
+            <h1 class="text-xl font-bold text-white">水族館驗證後臺管理系統</h1>
           </div>
+          <button id="logout-btn" class="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg text-sm">登出</button>
         </div>
       </header>
 
-      <!-- Main Content -->
-      <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <main class="flex-1 overflow-auto p-4 sm:p-6">
         <div class="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
           <div class="overflow-x-auto">
-            <table class="w-full">
+            <table class="w-full min-w-max">
               <thead class="bg-slate-750">
                 <tr class="border-b border-slate-700">
-                  <th class="text-left px-6 py-4 text-sm font-semibold text-slate-300 uppercase tracking-wider">使用者名稱</th>
-                  <th class="text-left px-6 py-4 text-sm font-semibold text-slate-300 uppercase tracking-wider">驗證時間</th>
-                  <th class="text-left px-6 py-4 text-sm font-semibold text-slate-300 uppercase tracking-wider">用戶 ID</th>
-                  <th class="text-left px-6 py-4 text-sm font-semibold text-slate-300 uppercase tracking-wider">IP</th>
-                  <th class="text-left px-6 py-4 text-sm font-semibold text-slate-300 uppercase tracking-wider">狀態</th>
-                  <th class="text-center px-6 py-4 text-sm font-semibold text-slate-300 uppercase tracking-wider">操作</th>
+                  <th class="text-left px-6 py-4 text-sm font-semibold text-slate-300 uppercase">使用者名稱</th>
+                  <th class="text-left px-6 py-4 text-sm font-semibold text-slate-300 uppercase">加入時間</th>
+                  <th class="text-left px-6 py-4 text-sm font-semibold text-slate-300 uppercase">用戶 ID</th>
+                  <th class="text-left px-6 py-4 text-sm font-semibold text-slate-300 uppercase">驗證時間</th>
+                  <th class="text-left px-6 py-4 text-sm font-semibold text-slate-300 uppercase">IP</th>
+                  <th class="text-left px-6 py-4 text-sm font-semibold text-slate-300 uppercase">狀態</th>
+                  <th class="text-center px-6 py-4 text-sm font-semibold text-slate-300 uppercase">操作</th>
                 </tr>
               </thead>
               <tbody id="table-body"></tbody>
             </table>
           </div>
           <div id="empty-state" class="py-16 text-center hidden">
-            <p class="text-slate-400 text-lg">尚無驗證資料</p>
+            <p class="text-slate-400 text-lg">尚無驗證記錄</p>
           </div>
         </div>
       </main>
     </div>
-  </div>
 
-  <!-- Operations Modal -->
-  <div id="operations-modal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-    <div class="bg-slate-800 rounded-xl p-6 max-w-md w-full mx-4 border border-slate-700">
-      <h3 class="text-lg font-semibold text-white mb-1" id="modal-username"></h3>
-      <p class="text-slate-400 text-sm mb-6" id="modal-userid"></p>
-      <div class="space-y-3">
-        <button class="operation-btn w-full bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-3 rounded-lg font-medium transition" data-op="suspend">🚫 停權帳號</button>
-        <button class="operation-btn w-full bg-orange-600 hover:bg-orange-700 text-white px-4 py-3 rounded-lg font-medium transition" data-op="kick">👢 踢出玩家</button>
-        <button class="operation-btn w-full bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-lg font-medium transition" data-op="delete-verify">🗑️ 刪除驗證記錄</button>
-        <button id="modal-cancel" class="w-full bg-slate-600 hover:bg-slate-500 text-white px-4 py-3 rounded-lg font-medium transition">取消</button>
+    <!-- 操作彈窗 -->
+    <div id="operations-modal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+      <div class="bg-slate-800 rounded-xl p-6 max-w-md w-full mx-4 border border-slate-700">
+        <h3 class="text-lg font-semibold text-white mb-1" id="modal-username"></h3>
+        <p class="text-slate-400 text-sm mb-6" id="modal-userid"></p>
+        <div class="space-y-3">
+          <button class="w-full bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-3 rounded-lg font-medium transition" data-op="suspend">🚫 停權帳號</button>
+          <button class="w-full bg-orange-600 hover:bg-orange-700 text-white px-4 py-3 rounded-lg font-medium transition" data-op="kick">👢 踢出伺服器</button>
+          <button class="w-full bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-lg font-medium transition" data-op="delete-verify">🗑️ 刪除驗證記錄</button>
+          <button id="modal-cancel" class="w-full bg-slate-600 hover:bg-slate-500 text-white px-4 py-3 rounded-lg font-medium transition">取消</button>
+        </div>
       </div>
     </div>
-  </div>
 
-  <!-- Password Confirmation Modal -->
-  <div id="password-modal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-    <div class="bg-slate-800 rounded-xl p-6 max-w-md w-full mx-4 border border-slate-700">
-      <h3 class="text-lg font-semibold text-white mb-2">驗證身份</h3>
-      <p class="text-slate-400 mb-6" id="password-modal-action"></p>
-      <div class="mb-4">
-        <input id="password-confirm" type="password" placeholder="輸入管理員密碼" class="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition">
+    <!-- 密碼確認彈窗 -->
+    <div id="password-modal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+      <div class="bg-slate-800 rounded-xl p-6 max-w-md w-full mx-4 border border-slate-700">
+        <h3 class="text-lg font-semibold text-white mb-2">驗證身份</h3>
+        <p class="text-slate-400 mb-6" id="password-modal-action"></p>
+        <input id="password-confirm" type="password" placeholder="輸入管理員密碼" class="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition mb-4">
+        <div class="flex gap-3">
+          <button id="password-cancel" class="flex-1 bg-slate-600 hover:bg-slate-500 text-white px-4 py-3 rounded-lg font-medium transition">取消</button>
+          <button id="password-confirm-btn" class="flex-1 bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-3 rounded-lg font-medium transition">確認</button>
+        </div>
+        <p id="password-error" class="mt-3 text-red-400 text-sm text-center hidden"></p>
       </div>
-      <div class="flex gap-3">
-        <button id="password-cancel" class="flex-1 bg-slate-600 hover:bg-slate-500 text-white px-4 py-3 rounded-lg font-medium transition">取消</button>
-        <button id="password-confirm-btn" class="flex-1 bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-3 rounded-lg font-medium transition">確認</button>
-      </div>
-      <div id="password-error" class="mt-3 text-red-400 text-sm text-center hidden"></div>
     </div>
-  </div>
 
-  <!-- Success/Action Toast -->
-  <div id="action-toast" class="hidden fixed bottom-6 right-6 bg-emerald-600 text-white px-6 py-3 rounded-lg shadow-lg">
-    <span id="toast-message"></span>
+    <!-- Toast 提示 -->
+    <div id="action-toast" class="hidden fixed bottom-6 right-6 bg-emerald-600 text-white px-6 py-3 rounded-lg shadow-lg z-50">
+      <span id="toast-message"></span>
+    </div>
   </div>
 
   <script>
-    // 現在 io 已定義，可以安全使用
-    const socket = io('https://aquariumverification-backed.onrender.com');  // 連到後端（同源），不同源請改成 io('https://你的render網址')
+    const API_BASE = 'https://aquariumverification-backed.onrender.com'; // 你的後端 Render 網址
 
     let currentTarget = null;
     let pendingOperation = null;
 
-    // 格式化時間
+    // 格式化日期
     function formatDate(iso) {
       if (!iso) return '-';
       return new Date(iso).toLocaleString('zh-TW', {
@@ -145,14 +129,11 @@
       });
     }
 
-    // 狀態顏色
-    function getStatusColor(status) {
-      switch(status) {
-        case '正常': return 'bg-emerald-900 text-emerald-300';
-        case '已停權': return 'bg-red-900 text-red-300';
-        case '已踢出': return 'bg-orange-900 text-orange-300';
-        default: return 'bg-slate-700 text-slate-300';
-      }
+    // 狀態樣式
+    function getStatusClass(status) {
+      if (status === '正常用戶') return 'bg-emerald-900 text-emerald-300';
+      if (status === '異常用戶') return 'bg-red-900 text-red-300';
+      return 'bg-slate-700 text-slate-300';
     }
 
     // 渲染表格
@@ -160,7 +141,7 @@
       const tbody = document.getElementById('table-body');
       const empty = document.getElementById('empty-state');
       tbody.innerHTML = '';
-      if (accounts.length === 0) {
+      if (!accounts || accounts.length === 0) {
         empty.classList.remove('hidden');
         return;
       }
@@ -171,17 +152,15 @@
         row.className = 'table-row border-b border-slate-700/50 fade-in';
         row.innerHTML = `
           <td class="px-6 py-4 font-medium text-white">${acc.username || '-'}</td>
-          <td class="px-6 py-4 text-slate-300">${formatDate(acc.verifiedAt)}</td>
+          <td class="px-6 py-4 text-slate-300">${formatDate(acc.timestamp)}</td>
           <td class="px-6 py-4"><code class="bg-slate-700 px-2 py-1 rounded text-cyan-400 text-sm">${acc.userId || '-'}</code></td>
+          <td class="px-6 py-4 text-slate-300">${formatDate(acc.verifiedAt)}</td>
           <td class="px-6 py-4"><code class="bg-slate-700 px-2 py-1 rounded text-emerald-400 text-sm">${acc.ip || '-'}</code></td>
           <td class="px-6 py-4">
-            <span class="px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(acc.status)}">
-              ${acc.status || '正常'}
-            </span>
+            <span class="px-3 py-1 rounded-full text-sm font-medium ${getStatusClass(acc.status)}">${acc.status || '未知'}</span>
           </td>
           <td class="px-6 py-4 text-center">
-            <button class="action-menu-btn bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition" 
-                    data-id="${acc.id}" data-userid="${acc.userId}" data-username="${acc.username}">
+            <button class="action-btn bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg text-sm" data-id="${acc.id}">
               ⚙️ 操作
             </button>
           </td>
@@ -198,18 +177,42 @@
       setTimeout(() => toast.classList.add('hidden'), 3000);
     }
 
-    // 顯示密碼確認 Modal
-    function showPasswordModal(op, username) {
+    // 顯示操作彈窗
+    function showOperationsModal(acc) {
+      currentTarget = acc;
+      document.getElementById('modal-username').textContent = acc.username || '未知';
+      document.getElementById('modal-userid').textContent = `ID: ${acc.userId || '-'}`;
+      document.getElementById('operations-modal').classList.remove('hidden');
+    }
+
+    // 顯示密碼確認彈窗
+    function showPasswordModal(op) {
       pendingOperation = op;
-      document.getElementById('password-modal-action').textContent = `確認對 ${username} 進行 ${op === 'suspend' ? '停權' : op === 'kick' ? '踢出' : '刪除驗證記錄'}？`;
+      const actionText = op === 'suspend' ? '停權' : op === 'kick' ? '踢出' : '刪除驗證記錄';
+      document.getElementById('password-modal-action').textContent = `確認要${actionText}此帳號？`;
       document.getElementById('password-confirm').value = '';
       document.getElementById('password-error').classList.add('hidden');
       document.getElementById('password-modal').classList.remove('hidden');
     }
 
-    // 登入（送給後端驗證）
+    // 載入帳號列表
+    async function loadAccounts() {
+      try {
+        const res = await fetch(`${API_BASE}/api/accounts`);
+        const data = await res.json();
+        if (data.success) {
+          renderTable(data.accounts);
+        } else {
+          alert('無法載入資料：' + (data.message || '未知錯誤'));
+        }
+      } catch (err) {
+        alert('載入失敗，請檢查網路或後端是否正常運行');
+      }
+    }
+
+    // 登入
     document.getElementById('login-btn').addEventListener('click', async () => {
-      const pwd = document.getElementById('login-password').value;
+      const pwd = document.getElementById('login-password').value.trim();
       const error = document.getElementById('login-error');
 
       if (!pwd) {
@@ -219,7 +222,7 @@
       }
 
       try {
-        const res = await fetch('/login', {
+        const res = await fetch(`${API_BASE}/api/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ password: pwd })
@@ -231,29 +234,14 @@
           document.getElementById('main-system').classList.remove('hidden');
           loadAccounts();
         } else {
-          error.textContent = data.message || '密碼錯誤';
+          error.textContent = data.message || '密碼錯誤，請重試';
           error.classList.remove('hidden');
         }
       } catch (err) {
-        error.textContent = '連線失敗，請檢查網路或後端是否運行';
+        error.textContent = '無法連線到後端，請檢查網路';
         error.classList.remove('hidden');
-        console.error('登入失敗:', err);
       }
     });
-
-    // 載入帳號列表
-    async function loadAccounts() {
-      try {
-        const res = await fetch('/accounts');
-        if (!res.ok) throw new Error('載入失敗');
-        const accounts = await res.json();
-        renderTable(accounts);
-      } catch (err) {
-        console.error('載入帳號失敗:', err);
-        document.getElementById('empty-state').innerHTML = '<p class="text-red-400 text-lg">載入資料失敗，請檢查後端</p>';
-        document.getElementById('empty-state').classList.remove('hidden');
-      }
-    }
 
     // 登出
     document.getElementById('logout-btn').addEventListener('click', () => {
@@ -263,38 +251,34 @@
       document.getElementById('login-error').classList.add('hidden');
     });
 
-    // 操作按鈕事件
-    document.getElementById('table-body').addEventListener('click', (e) => {
-      const btn = e.target.closest('.action-menu-btn');
+    // 表格操作按鈕
+    document.getElementById('table-body').addEventListener('click', e => {
+      const btn = e.target.closest('.action-btn');
       if (btn) {
         const id = btn.dataset.id;
-        const userid = btn.dataset.userid;
-        const username = btn.dataset.username;
-
-        document.getElementById('modal-username').textContent = username;
-        document.getElementById('modal-userid').textContent = `ID: ${userid}`;
+        // 這裡簡化：直接用 id 傳給操作彈窗（後端會處理）
+        currentTarget = { id };
+        document.getElementById('modal-username').textContent = '使用者 #' + id.substring(0, 6);
+        document.getElementById('modal-userid').textContent = 'ID: ' + id;
         document.getElementById('operations-modal').classList.remove('hidden');
-
-        currentTarget = { id, userid, username };
       }
     });
 
-    // 操作選擇
+    // 操作按鈕點擊
     document.querySelectorAll('.operation-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        if (!currentTarget) return;
-        showPasswordModal(btn.dataset.op, currentTarget.username);
-      });
+      btn.addEventListener('click', () => showPasswordModal(btn.dataset.op));
     });
 
-    // 取消 Modal
     document.getElementById('modal-cancel').addEventListener('click', () => {
       document.getElementById('operations-modal').classList.add('hidden');
     });
 
-    // 密碼確認並執行操作
+    document.getElementById('password-cancel').addEventListener('click', () => {
+      document.getElementById('password-modal').classList.add('hidden');
+    });
+
     document.getElementById('password-confirm-btn').addEventListener('click', async () => {
-      const pwd = document.getElementById('password-confirm').value;
+      const pwd = document.getElementById('password-confirm').value.trim();
       const error = document.getElementById('password-error');
 
       if (!pwd) {
@@ -304,50 +288,38 @@
       }
 
       try {
-        // 先驗證密碼
-        const loginRes = await fetch('/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ password: pwd })
-        });
-        const loginData = await loginRes.json();
-
-        if (!loginData.success) {
-          error.textContent = loginData.message || '密碼錯誤';
-          error.classList.remove('hidden');
-          return;
-        }
-
-        // 密碼正確 → 執行操作
-        const opRes = await fetch('/operation', {
+        const res = await fetch(`${API_BASE}/api/operation`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             op: pendingOperation,
-            id: currentTarget.id,
-            userId: currentTarget.userid
+            id: currentTarget.id
           })
         });
-        const opData = await opRes.json();
+        const data = await res.json();
 
-        if (opData.success) {
-          showToast(opData.message || '操作成功');
-          loadAccounts(); // 刷新表格
+        if (data.success) {
+          showToast(data.message || '操作成功');
           document.getElementById('operations-modal').classList.add('hidden');
           document.getElementById('password-modal').classList.add('hidden');
+          loadAccounts(); // 刷新列表
         } else {
-          showToast(opData.message || '操作失敗');
+          error.textContent = data.message || '操作失敗';
+          error.classList.remove('hidden');
         }
       } catch (err) {
         error.textContent = '連線失敗，請檢查網路';
         error.classList.remove('hidden');
-        console.error('操作錯誤:', err);
       }
     });
 
-    document.getElementById('password-cancel').addEventListener('click', () => {
-      document.getElementById('password-modal').classList.add('hidden');
+    // Enter 鍵登入
+    document.getElementById('login-password').addEventListener('keypress', e => {
+      if (e.key === 'Enter') document.getElementById('login-btn').click();
     });
+
+    // 載入時自動檢查（可選）
+    // loadAccounts();
   </script>
 </body>
 </html>
